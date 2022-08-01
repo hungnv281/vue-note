@@ -1,58 +1,165 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="abc">
+    <a-button class="btn" @click="showModal" type="primary">add</a-button>
+    <a-button class="btn" @click="showList()" type="primary">{{
+      isShowList ? "hide note" : "show list note"
+    }}</a-button>
+    <a-input
+      class="input"
+      type="input"
+      placeholder="Search ..."
+      @change="handleChange"
+      v-bind:value="valueAdd"
+      v-on:keyup.enter="addNote()"
+    ></a-input>
+    <a-list
+      :grid="{ gutter: 16, column: 4 }"
+      :data-source="data1"
+      v-model="data1"
+      v-show="isShowList"
+      :loading="isLoaded"
+    >
+      <template #renderItem="{ item }">
+        <a-list-item>
+          <ItemNote :data="{ item }" @click="showModalChange(item)" />
+          <a-button
+            class="btn"
+            @click="deleteDataFromAxios(item.id)"
+            type="primary"
+            >delete</a-button
+          >
+        </a-list-item>
+      </template>
+    </a-list>
+
+    <ModalItem
+      :defaultData="itemChange"
+      :isShow="isShow"
+      :endShowModal="endShowModal"
+      :createNote="handleSubmit"
+      v-if="isShow"
+    />
   </div>
 </template>
-
 <script>
+import ModalItem from "./ModalItem.vue";
+import axios from "axios";
+import ItemNote from "./ItemNote.vue";
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
+  name: "ABC",
+  el: "abc",
+  data() {
+    return {
+      isShowList: false,
+      isLoaded: false,
+      data1: [],
+      valueAdd: "",
+      isShow: false,
+      link: "https://facebook.com",
+      itemChange: {},
+    };
+  },
+  created() {
+    this.getDataFromAxios();
+  },
+  methods: {
+    showModal() {
+      this.isShow = true;
+    },
+    showModalChange(item) {
+      this.isShow = true;
+      this.itemChange = item;
+    },
+    endShowModal() {
+      this.isShow = false;
+      // this.itemChange = {};
+    },
+    showList() {
+      this.isShowList = !this.isShowList;
+    },
+    handleChange(event) {
+      this.valueAdd = event.target.value;
+    },
+    getDataFromAxios() {
+      this.isLoaded = true;
+      axios
+        .get("https://62c53ec5a361f725127e3269.mockapi.io/note")
+        .then((response) => {
+          this.isLoaded = false;
+          // console.log(response.data);
+          this.data1 = [...response.data];
+        });
+    },
+    deleteDataFromAxios(id) {
+      this.isLoaded = true;
+      axios
+        .delete("https://62c53ec5a361f725127e3269.mockapi.io/note/" + id)
+        .then(() => {
+          this.getDataFromAxios();
+          this.isLoaded = false;
+        });
+    },
+    createDataToAxios(value) {
+      // this.itemChange = {};
+      this.isLoaded = true;
+      console.log("addd", value);
+      axios
+        .post("https://62c53ec5a361f725127e3269.mockapi.io/note", value)
+        .then(( ) => {
+          this.endShowModal();
+          this.isLoaded = false;
+          // console.log(response.data);
+          this.getDataFromAxios();
+        });
+    },
+    EditDataToAxios(value) {
+      this.isLoaded = true;
+      console.log("edit ", value);
+      axios
+        .put("https://62c53ec5a361f725127e3269.mockapi.io/note/" + value.id, value)
+        .then(() => {
+          this.endShowModal();
+          this.isLoaded = false;
+          this.getDataFromAxios();
+        });
+    },
+    
+  },
+
+  computed: {
+    handleSubmit: function() {
+        console.log("day la id ", this.itemChange.id);
+        if (this.itemChange.id) return this.EditDataToAxios(this.itemChange);
+        else return this.createDataToAxios(this.itemChange);
+      },
+  },
+  components: {
+    ModalItem,
+    ItemNote,
+  },
+};
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.abc {
+  color: red;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.btn {
+  margin: 10px auto;
+  /* padding: 10px; */
+  min-width: 200px;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+.btn + .btn {
+  margin-left: 10px;
 }
-a {
-  color: #42b983;
+
+.item:hover {
+  cursor: pointer;
+}
+
+.input {
+  margin: 0 auto 10px;
+  width: 300px;
+  display: block;
 }
 </style>
