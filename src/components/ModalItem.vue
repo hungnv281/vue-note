@@ -3,9 +3,10 @@
     <a-modal
       :visible="isShow"
       width="800px"
-      title="Basic Modal"
-      @ok="onFinish"
-      @cancel="endShowModal"
+      :title="titleModal"
+      @ok="handleSubmit"
+      @cancel="toggleModal({})"
+      :okText="okText"
     >
       <a-form>
         <a-form-item
@@ -14,11 +15,7 @@
           :labelCol="{ span: 3 }"
           :wrapper-col="{ span: 18 }"
         >
-          <a-input
-            placeholder="title"
-            @change="changeTitle"
-            :value="value.title"
-          ></a-input>
+          <a-input placeholder="title" v-model:value="item.title"></a-input>
         </a-form-item>
         <a-form-item
           label="tag"
@@ -26,29 +23,23 @@
           :labelCol="{ span: 3 }"
           :wrapper-col="{ span: 18 }"
         >
-          <a-input
-            placeholder="tag"
-            @change="changeTag"
-            :value="value.tag"
-          ></a-input>
+          <a-input placeholder="tag" v-model:value="item.tag"></a-input>
         </a-form-item>
         <a-form-item
           label="description"
           name="description"
           :wrapper-col="{ span: 18 }"
-          :labelCol="{ span: 3 }" 
+          :labelCol="{ span: 3 }"
         >
           <a-textarea
             placeholder="description"
-            @change="changeDescription"
-            :value="value.description"
+            v-model:value="item.description"
             :rows="5"
           ></a-textarea>
         </a-form-item>
       </a-form>
     </a-modal>
   </div>
-  <button @click="showdata">123</button>
 </template>
 <script>
 export default {
@@ -56,41 +47,32 @@ export default {
   props: {
     defaultData: Object,
     isShow: Boolean,
-    // showModal: Function,
-    endShowModal: Function,
-    // createNote: Function,
-    createNote: Function,
+    toggleModal: Function,
+    onSubmit: Function,
   },
   data() {
     return {
+      titleModal: this.defaultData.id !== undefined ? "Modal edit note":"Modal add note" ,
+      okText: this.defaultData.id !== undefined ? "Edit":"Create" ,
       value: this.defaultData,
+      item: {
+        description: this.defaultData.description,
+        title: this.defaultData.title,
+        tag: this.defaultData.tag,
+        id:this.defaultData.id ? this.defaultData.id : "",
+      },
     };
+  },
+  created(){
+    console.log(this.defaultData.id)
   },
   methods: {
     showdata() {
       console.log(this.defaultData);
     },
-    onFinish() {
-      console.log("Success:", this.value);
-      this.createNote(this.value);
-    },
-    changeTitle(event) {
-      this.value = {
-        ...this.value,
-        title: event.target.value,
-      };
-    },
-    changeDescription(event) {
-      this.value = {
-        ...this.value,
-        description: event.target.value,
-      };
-    },
-    changeTag(event) {
-      this.value = {
-        ...this.value,
-        tag: event.target.value,
-      };
+    handleSubmit() {
+      console.log("Success:", this.item);
+      this.onSubmit(this.item)
     },
   },
 };

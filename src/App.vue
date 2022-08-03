@@ -1,16 +1,16 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
-  <ABC />
+  <ListNote />
 </template>
 
 <script>
-import ABC from './components/HelloWorld.vue'
+import ListNote from './components/ListNote.vue'
 
 export default {
   name: 'App',
   components: {
-    ABC,
-  }
+    ListNote,
+}
 }
 </script>
 
